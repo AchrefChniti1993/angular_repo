@@ -1,7 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
-import { ApiService } from '../shared/services/api.service';
-import { MockApiService } from '../shared/services/api.service.mock';
 import { ProductDetailsComponent } from './product-details.component';
 
 describe('ProductDetailsComponent', () => {
@@ -10,17 +7,11 @@ describe('ProductDetailsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [RouterTestingModule],
-      declarations: [ProductDetailsComponent],
-      providers: [
-        {
-          provide: ApiService,
-          useValue: MockApiService,
-        },
-      ],
+      imports: [ProductDetailsComponent],
     });
     fixture = TestBed.createComponent(ProductDetailsComponent);
     component = fixture.componentInstance;
+    component.product = { id: 'id', title: 'title', description: 'description', photo: 'photo', price: 10, stock: 2 };
     fixture.detectChanges();
   });
 

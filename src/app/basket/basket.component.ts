@@ -1,31 +1,44 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { AsyncPipe, CurrencyPipe, NgFor, NgIf } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { AlertService } from '../alert/alert.service';
 import { Customer } from '../customer/customer.types';
 import { BasketService } from './basket.service';
 
 @Component({
   selector: 'app-basket',
+  standalone: true,
+  imports: [AsyncPipe, CurrencyPipe, NgFor, NgIf],
   templateUrl: './basket.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BasketComponent implements OnInit {
+export class BasketComponent {
   protected customer: Customer = { name: '', address: '', creditCard: '' };
 
-  private basketService = inject(BasketService);
+  #basketService = inject(BasketService);
 
-  private router = inject(Router);
+  #alertService = inject(AlertService);
 
-  protected items = this.basketService.items;
+  #router = inject(Router);
 
-  protected total = this.basketService.total;
+  protected items$ = this.#basketService.items$;
 
-  ngOnInit(): void {
-    this.basketService.fetch().subscribe();
-  }
+  protected numberOfItems$ = this.#basketService.numberOfItems$;
+
+  protected total$ = this.#basketService.total$;
 
   protected checkout(event: Event): void {
     event.stopPropagation();
     event.preventDefault();
 
-    this.basketService.checkout(this.customer).subscribe(() => this.router.navigate(['']));
+    this.#basketService.checkout(this.customer).subscribe({
+      next: ({ orderNumber }) => {
+        this.#alertService.addSuccess(`🚀 Merci pour votre commande (réf. ${orderNumber}).`);
+        this.#router.navigate(['']);
+      },
+      error: () => {
+        this.#alertService.addDanger("😱 Désolé, une erreur s'est produite.");
+      },
+    });
   }
 }

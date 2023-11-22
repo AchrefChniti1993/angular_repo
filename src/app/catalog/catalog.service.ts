@@ -1,5 +1,5 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { inject, Injectable } from '@angular/core';
+import { BehaviorSubject, map, Observable, tap } from 'rxjs';
 import { ApiService } from '../shared/services/api.service';
 import { Product } from './product/product.types';
 
@@ -7,19 +7,23 @@ import { Product } from './product/product.types';
   providedIn: 'root',
 })
 export class CatalogService {
-  products = signal<Product[]>([]);
+  #products$ = new BehaviorSubject<Product[]>([]);
 
-  isStockEmpty = computed(() => this.products().every(({ stock }) => stock === 0));
+  products$ = this.#products$.asObservable();
+
+  isStockEmpty$: Observable<boolean> = this.#products$.pipe(
+    map((products) => products.every(({ stock }) => stock === 0)),
+  );
 
   protected apiService = inject(ApiService);
 
   fetch(): Observable<Product[]> {
-    return this.apiService.getProducts().pipe(tap((products) => this.products.set(products)));
+    return this.apiService.getProducts().pipe(tap((products) => this.#products$.next(products)));
   }
 
   decreaseStock(productId: string): void {
-    this.products.update((products) =>
-      products.map((product) => {
+    this.#products$.next(
+      this.#products$.value.map((product) => {
         if (product.id === productId) {
           return { ...product, stock: product.stock - 1 };
         }

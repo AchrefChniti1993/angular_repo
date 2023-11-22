@@ -1,12 +1,15 @@
-import { Component, inject } from '@angular/core';
+import { AsyncPipe, NgIf } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { BasketService } from '../basket/basket.service';
 
 @Component({
   selector: 'app-menu',
+  standalone: true,
+  imports: [AsyncPipe, NgIf, RouterLink],
   templateUrl: './menu.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MenuComponent {
-  private basketService = inject(BasketService);
-
-  protected numberOfItems = this.basketService.numberOfItems;
+  protected numberOfItems$ = inject(BasketService).numberOfItems$;
 }
